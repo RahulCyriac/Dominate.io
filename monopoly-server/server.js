@@ -23,6 +23,8 @@ io.on('connection', (socket) => {
     const roomId = Math.random().toString(36).substring(2, 8);
     socket.join(roomId);
 
+    const colors = ['red', 'blue', 'green', 'purple', 'orange', 'teal', 'yellow', 'pink'];
+
     rooms[roomId] = {
       host: socket.id,
       board: [],
@@ -39,7 +41,7 @@ io.on('connection', (socket) => {
       money: 1500,
       isJailed: false,
       jailTurnsLeft: 0,
-      color: ['red', 'blue', 'green', 'purple', 'orange', 'teal', 'yellow', 'pink'][0]
+      color: colors[0]
     };
 
     rooms[roomId].players.push(newPlayer);
@@ -48,10 +50,14 @@ io.on('connection', (socket) => {
 
   socket.on('joinRoom', ({ roomId, playerName }) => {
     const room = rooms[roomId];
-    if (!room || room.started) return;
+    if (!room || room.started) {
+      socket.emit('errorMessage', { message: 'Room does not exist or game already started.' });
+      return;
+    }
 
     socket.join(roomId);
-    const colors = color ['red', 'blue', 'green', 'purple', 'orange', 'teal', 'yellow', 'pink'];
+
+    const colors = ['red', 'blue', 'green', 'purple', 'orange', 'teal', 'yellow', 'pink'];
     const newPlayer = {
       id: socket.id,
       name: playerName,
@@ -59,7 +65,7 @@ io.on('connection', (socket) => {
       money: 1500,
       isJailed: false,
       jailTurnsLeft: 0,
-      color: colors[room.players.length % colors.length],
+      color: colors[room.players.length % colors.length]
     };
 
     room.players.push(newPlayer);

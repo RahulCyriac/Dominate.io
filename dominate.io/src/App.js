@@ -23,6 +23,9 @@ function App() {
       setJoined(true);
       setIsHost(isHost);
     });
+    socket.on('errorMessage', ({ message }) => {
+  alert(message);
+});
 
     socket.on('playerJoined', ({ players }) => {
       setPlayers(players);
