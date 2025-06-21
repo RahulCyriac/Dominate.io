@@ -2,26 +2,7 @@ import './App.css';
 import { useState, useEffect } from 'react';
 import { io } from 'socket.io-client';
 
-
-const socket = io('https://your-monopoly-server.onrender.com'); // change to deployed URL in production
-
-const initialBoard = Array.from({ length: 40 }, (_, i) => ({
-  id: i,
-  name: i % 5 === 0 ? `Special Tile ${i}` : `Property ${i}`,
-  type: i % 5 === 0 ? 'special' : 'property',
-  price: 100 + i * 10,
-  owner: null,
-}));
-
-const chanceCards = [
-  { text: "🏦 Bank gives you ₹200", action: (player) => { player.money += 200; } },
-  { text: "💸 Pay ₹100 to the bank", action: (player) => { player.money -= 100; } },
-  { text: "🚶 Move forward 3 tiles", action: (player) => { player.position = (player.position + 3) % 40; } },
-  { text: "↩️ Move backward 2 tiles", action: (player) => { player.position = (player.position + 38) % 40; } },
-  { text: "🚔 Go to Jail (tile 10)", action: (player) => { player.position = 10; player.isJailed = true; player.jailTurnsLeft = 1; } },
-];
-
-
+const socket = io('https://dominate-io.onrender.com'); // Change to local in development
 
 function App() {
   const [board, setBoard] = useState([]);
@@ -46,6 +27,14 @@ function App() {
 
     return () => socket.disconnect();
   }, []);
+
+  const createRoom = () => {
+    if (!playerName) return;
+    const newRoomId = Math.random().toString(36).substring(2, 8);
+    setRoomId(newRoomId);
+    socket.emit('createRoom', { roomId: newRoomId, playerName });
+    setJoined(true);
+  };
 
   const joinRoom = () => {
     if (!playerName || !roomId) return;
@@ -72,11 +61,14 @@ function App() {
             onChange={(e) => setPlayerName(e.target.value)}
           />
           <input
-            placeholder="Room ID"
+            placeholder="Room ID (to join)"
             value={roomId}
             onChange={(e) => setRoomId(e.target.value)}
           />
-          <button onClick={joinRoom}>Join Room</button>
+          <div>
+            <button onClick={createRoom}>Create Room</button>
+            <button onClick={joinRoom}>Join Room</button>
+          </div>
         </div>
       ) : (
         <>
