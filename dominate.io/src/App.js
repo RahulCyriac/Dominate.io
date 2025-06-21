@@ -1,9 +1,8 @@
-// src/App.js
 import './App.css';
 import { useState, useEffect } from 'react';
 import { io } from 'socket.io-client';
 
-const socket = io('https://dominate-io.onrender.com'); // your deployed server URL
+const socket = io('https://dominate-io.onrender.com');
 
 function App() {
   const [board, setBoard] = useState([]);
@@ -14,8 +13,8 @@ function App() {
   const [roomId, setRoomId] = useState('');
   const [joined, setJoined] = useState(false);
   const [isHost, setIsHost] = useState(false);
-  const [chatMessages, setChatMessages] = useState([]);
   const [chatInput, setChatInput] = useState('');
+  const [messages, setMessages] = useState([]);
 
   useEffect(() => {
     socket.on('roomJoined', ({ players, roomId, isHost }) => {
@@ -36,8 +35,8 @@ function App() {
       setLogMessage(log);
     });
 
-    socket.on('chatMessage', ({ name, message }) => {
-      setChatMessages((prev) => [...prev, { name, message }]);
+    socket.on('chatMessage', ({ message, sender }) => {
+      setMessages(prev => [...prev, { message, sender }]);
     });
 
     return () => socket.disconnect();
@@ -61,9 +60,9 @@ function App() {
     socket.emit('rollDice', { roomId });
   };
 
-  const sendMessage = () => {
+  const sendChat = () => {
     if (chatInput.trim()) {
-      socket.emit('chatMessage', { roomId, name: playerName, message: chatInput });
+      socket.emit('chatMessage', { roomId, message: chatInput, sender: playerName });
       setChatInput('');
     }
   };
@@ -71,6 +70,7 @@ function App() {
   return (
     <div className="App">
       <h1>🎲 Monopoly Multiplayer</h1>
+
       {!joined ? (
         <div>
           <input placeholder="Name" value={playerName} onChange={(e) => setPlayerName(e.target.value)} />
@@ -88,42 +88,23 @@ function App() {
               {p.name} - ₹{p.money ?? 1500} {p.isJailed ? '🚔' : ''}
             </div>
           ))}
+
           <button onClick={rollDice}>Roll Dice</button>
           <p>{logMessage}</p>
-          
-          <div className="board">
-  {board.map((tile, index) => (
-    <div key={index} className="tile">
-      <div>{tile.name}</div>
-      {players.map((p, idx) =>
-        p.position === tile.id ? (
-          <div
-            key={p.id}
-            className="player"
-            style={{ backgroundColor: p.color || 'gray' }}
-            title={p.name}
-          />
-        ) : null
-      )}
-    </div>
-  ))}
-</div>
 
-
-          <div className="chat-box">
+          <div>
             <h3>💬 Chat</h3>
-            <div className="chat-messages">
-              {chatMessages.map((msg, idx) => (
-                <div key={idx}><strong>{msg.name}</strong>: {msg.message}</div>
+            <div style={{ maxHeight: '150px', overflowY: 'auto', background: '#eee', padding: '5px' }}>
+              {messages.map((msg, idx) => (
+                <div key={idx}><strong>{msg.sender}:</strong> {msg.message}</div>
               ))}
             </div>
             <input
               value={chatInput}
               onChange={(e) => setChatInput(e.target.value)}
-              placeholder="Type message..."
-              onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
+              placeholder="Type a message..."
             />
-            <button onClick={sendMessage}>Send</button>
+            <button onClick={sendChat}>Send</button>
           </div>
         </>
       )}

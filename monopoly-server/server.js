@@ -1,4 +1,3 @@
-// server.js
 const express = require('express');
 const http = require('http');
 const cors = require('cors');
@@ -22,16 +21,15 @@ io.on('connection', (socket) => {
 
   socket.on('createRoom', ({ playerName }) => {
     const roomId = Math.random().toString(36).substring(2, 8);
-    color: ['red', 'blue', 'green', 'purple', 'orange', 'teal', 'yellow', 'pink'][room.players.length % 8],
-
     socket.join(roomId);
+
     rooms[roomId] = {
       host: socket.id,
       board: [],
       players: [],
       currentPlayerIndex: 0,
       started: false,
-      chat: [],
+      chat: []
     };
 
     const newPlayer = {
@@ -40,21 +38,20 @@ io.on('connection', (socket) => {
       position: 0,
       money: 1500,
       isJailed: false,
-      jailTurnsLeft: 0
+      jailTurnsLeft: 0,
+      color: ['red', 'blue', 'green', 'purple', 'orange', 'teal', 'yellow', 'pink'][0]
     };
 
     rooms[roomId].players.push(newPlayer);
     socket.emit('roomJoined', { players: rooms[roomId].players, roomId, isHost: true });
   });
 
-  socket.on('joinRoom', ({ playerName, roomId }) => {
-    
+  socket.on('joinRoom', ({ roomId, playerName }) => {
     const room = rooms[roomId];
-    
     if (!room || room.started) return;
-  
+
     socket.join(roomId);
-    
+
     const newPlayer = {
       id: socket.id,
       name: playerName,
@@ -64,7 +61,6 @@ io.on('connection', (socket) => {
       jailTurnsLeft: 0,
       color: ['red', 'blue', 'green', 'purple', 'orange', 'teal', 'yellow', 'pink'][room.players.length % 8]
     };
-    
 
     room.players.push(newPlayer);
     io.to(roomId).emit('playerJoined', { players: room.players });
@@ -119,12 +115,10 @@ io.on('connection', (socket) => {
     });
   });
 
-  socket.on('chatMessage', ({ roomId, name, message }) => {
-    const room = rooms[roomId];
-    if (!room) return;
-
-    room.chat.push({ name, message });
-    io.to(roomId).emit('chatMessage', { name, message });
+  socket.on('chatMessage', ({ roomId, message, sender }) => {
+    if (!rooms[roomId]) return;
+    rooms[roomId].chat.push({ message, sender });
+    io.to(roomId).emit('chatMessage', { message, sender });
   });
 
   socket.on('disconnect', () => {
@@ -138,7 +132,6 @@ io.on('connection', (socket) => {
         io.to(roomId).emit('playerJoined', { players: room.players });
       }
     }
-
     console.log(`🔴 ${socket.id} disconnected`);
   });
 });
