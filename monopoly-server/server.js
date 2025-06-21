@@ -61,9 +61,10 @@ io.on('connection', (socket) => {
       position: 0,
       money: 1500,
       isJailed: false,
-      jailTurnsLeft: 0
+      jailTurnsLeft: 0,
+      color: ['red', 'blue', 'green', 'purple', 'orange', 'teal', 'yellow', 'pink'][room.players.length % 8]
     };
-    color: ['red', 'blue', 'green', 'purple', 'orange', 'teal', 'yellow', 'pink'][room.players.length % 8],
+    
 
     room.players.push(newPlayer);
     io.to(roomId).emit('playerJoined', { players: room.players });
