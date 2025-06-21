@@ -22,6 +22,8 @@ io.on('connection', (socket) => {
 
   socket.on('createRoom', ({ playerName }) => {
     const roomId = Math.random().toString(36).substring(2, 8);
+    color: ['red', 'blue', 'green', 'purple', 'orange', 'teal', 'yellow', 'pink'][room.players.length % 8],
+
     socket.join(roomId);
     rooms[roomId] = {
       host: socket.id,
@@ -46,11 +48,13 @@ io.on('connection', (socket) => {
   });
 
   socket.on('joinRoom', ({ playerName, roomId }) => {
+    
     const room = rooms[roomId];
+    
     if (!room || room.started) return;
-
+  
     socket.join(roomId);
-
+    
     const newPlayer = {
       id: socket.id,
       name: playerName,
@@ -59,6 +63,7 @@ io.on('connection', (socket) => {
       isJailed: false,
       jailTurnsLeft: 0
     };
+    color: ['red', 'blue', 'green', 'purple', 'orange', 'teal', 'yellow', 'pink'][room.players.length % 8],
 
     room.players.push(newPlayer);
     io.to(roomId).emit('playerJoined', { players: room.players });

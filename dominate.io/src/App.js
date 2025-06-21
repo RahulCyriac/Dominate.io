@@ -90,6 +90,25 @@ function App() {
           ))}
           <button onClick={rollDice}>Roll Dice</button>
           <p>{logMessage}</p>
+          
+          <div className="board">
+  {board.map((tile, index) => (
+    <div key={index} className="tile">
+      <div>{tile.name}</div>
+      {players.map((p, idx) =>
+        p.position === tile.id ? (
+          <div
+            key={p.id}
+            className="player"
+            style={{ backgroundColor: p.color || 'gray' }}
+            title={p.name}
+          />
+        ) : null
+      )}
+    </div>
+  ))}
+</div>
+
 
           <div className="chat-box">
             <h3>💬 Chat</h3>
