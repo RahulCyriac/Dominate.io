@@ -2,7 +2,7 @@ import './App.css';
 import { useState, useEffect } from 'react';
 import { io } from 'socket.io-client';
 
-const socket = io('http://localhost:3001'); // change to deployed URL in production
+const socket = io('https://your-monopoly-server.onrender.com'); // change to deployed URL in production
 
 const initialBoard = Array.from({ length: 40 }, (_, i) => ({
   id: i,
