@@ -3,7 +3,7 @@ import './App.css';
 import { useState, useEffect } from 'react';
 import { io } from 'socket.io-client';
 
-const socket = io('https://dominate-io.onrender.com'); // Replace with your Render server URL
+const socket = io('https://dominate-io.onrender.com'); // your deployed server URL
 
 function App() {
   const [board, setBoard] = useState([]);
@@ -14,6 +14,8 @@ function App() {
   const [roomId, setRoomId] = useState('');
   const [joined, setJoined] = useState(false);
   const [isHost, setIsHost] = useState(false);
+  const [chatMessages, setChatMessages] = useState([]);
+  const [chatInput, setChatInput] = useState('');
 
   useEffect(() => {
     socket.on('roomJoined', ({ players, roomId, isHost }) => {
@@ -32,6 +34,10 @@ function App() {
       setPlayers(players);
       setCurrentPlayerIndex(currentPlayerIndex);
       setLogMessage(log);
+    });
+
+    socket.on('chatMessage', ({ name, message }) => {
+      setChatMessages((prev) => [...prev, { name, message }]);
     });
 
     return () => socket.disconnect();
@@ -55,10 +61,16 @@ function App() {
     socket.emit('rollDice', { roomId });
   };
 
+  const sendMessage = () => {
+    if (chatInput.trim()) {
+      socket.emit('chatMessage', { roomId, name: playerName, message: chatInput });
+      setChatInput('');
+    }
+  };
+
   return (
     <div className="App">
       <h1>🎲 Monopoly Multiplayer</h1>
-
       {!joined ? (
         <div>
           <input placeholder="Name" value={playerName} onChange={(e) => setPlayerName(e.target.value)} />
@@ -78,6 +90,22 @@ function App() {
           ))}
           <button onClick={rollDice}>Roll Dice</button>
           <p>{logMessage}</p>
+
+          <div className="chat-box">
+            <h3>💬 Chat</h3>
+            <div className="chat-messages">
+              {chatMessages.map((msg, idx) => (
+                <div key={idx}><strong>{msg.name}</strong>: {msg.message}</div>
+              ))}
+            </div>
+            <input
+              value={chatInput}
+              onChange={(e) => setChatInput(e.target.value)}
+              placeholder="Type message..."
+              onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
+            />
+            <button onClick={sendMessage}>Send</button>
+          </div>
         </>
       )}
     </div>

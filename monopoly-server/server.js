@@ -1,4 +1,4 @@
-// monopoly-server/server.js
+// server.js
 const express = require('express');
 const http = require('http');
 const cors = require('cors');
@@ -21,14 +21,15 @@ io.on('connection', (socket) => {
   console.log(`🟢 ${socket.id} connected`);
 
   socket.on('createRoom', ({ playerName }) => {
-    const roomId = Math.random().toString(36).substring(2, 8); // random 6-char ID
+    const roomId = Math.random().toString(36).substring(2, 8);
     socket.join(roomId);
     rooms[roomId] = {
       host: socket.id,
       board: [],
       players: [],
       currentPlayerIndex: 0,
-      started: false
+      started: false,
+      chat: [],
     };
 
     const newPlayer = {
@@ -37,25 +38,26 @@ io.on('connection', (socket) => {
       position: 0,
       money: 1500,
       isJailed: false,
-      jailTurnsLeft: 0,
+      jailTurnsLeft: 0
     };
 
     rooms[roomId].players.push(newPlayer);
     socket.emit('roomJoined', { players: rooms[roomId].players, roomId, isHost: true });
   });
 
-  socket.on('joinRoom', ({ roomId, playerName }) => {
+  socket.on('joinRoom', ({ playerName, roomId }) => {
     const room = rooms[roomId];
     if (!room || room.started) return;
 
     socket.join(roomId);
+
     const newPlayer = {
       id: socket.id,
       name: playerName,
       position: 0,
       money: 1500,
       isJailed: false,
-      jailTurnsLeft: 0,
+      jailTurnsLeft: 0
     };
 
     room.players.push(newPlayer);
@@ -111,6 +113,14 @@ io.on('connection', (socket) => {
     });
   });
 
+  socket.on('chatMessage', ({ roomId, name, message }) => {
+    const room = rooms[roomId];
+    if (!room) return;
+
+    room.chat.push({ name, message });
+    io.to(roomId).emit('chatMessage', { name, message });
+  });
+
   socket.on('disconnect', () => {
     for (const roomId in rooms) {
       const room = rooms[roomId];
@@ -122,6 +132,7 @@ io.on('connection', (socket) => {
         io.to(roomId).emit('playerJoined', { players: room.players });
       }
     }
+
     console.log(`🔴 ${socket.id} disconnected`);
   });
 });
