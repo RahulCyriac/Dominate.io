@@ -82,9 +82,17 @@ function App() {
         <>
           <p><strong>Room ID:</strong> {roomId}</p>
           {isHost && <button onClick={startGame}>Start Game</button>}
+
           <h2>Players</h2>
           {players.map((p, idx) => (
-            <div key={p.id} style={{ border: idx === currentPlayerIndex ? '2px solid gold' : '1px solid gray', padding: '5px', marginBottom: '5px' }}>
+            <div
+              key={p.id}
+              style={{
+                border: idx === currentPlayerIndex ? '2px solid gold' : '1px solid gray',
+                padding: '5px',
+                marginBottom: '5px'
+              }}
+            >
               {p.name} - ₹{p.money ?? 1500} {p.isJailed ? '🚔' : ''}
             </div>
           ))}
@@ -92,6 +100,28 @@ function App() {
           <button onClick={rollDice}>Roll Dice</button>
           <p>{logMessage}</p>
 
+          {/* 🎯 Board rendering here */}
+          <div className="board">
+            {board.map((tile) => (
+              <div key={tile.id} className="tile">
+                <div>{tile.name}</div>
+
+                {/* Show all players on this tile */}
+                {players
+                  .filter(p => p.position === tile.id)
+                  .map(p => (
+                    <div
+                      key={p.id}
+                      className="player"
+                      style={{ backgroundColor: p.color }}
+                      title={p.name}
+                    />
+                  ))}
+              </div>
+            ))}
+          </div>
+
+          {/* 💬 Chat */}
           <div>
             <h3>💬 Chat</h3>
             <div style={{ maxHeight: '150px', overflowY: 'auto', background: '#eee', padding: '5px' }}>

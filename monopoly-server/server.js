@@ -51,7 +51,7 @@ io.on('connection', (socket) => {
     if (!room || room.started) return;
 
     socket.join(roomId);
-
+    const colors = color ['red', 'blue', 'green', 'purple', 'orange', 'teal', 'yellow', 'pink'];
     const newPlayer = {
       id: socket.id,
       name: playerName,
@@ -59,7 +59,7 @@ io.on('connection', (socket) => {
       money: 1500,
       isJailed: false,
       jailTurnsLeft: 0,
-      color: ['red', 'blue', 'green', 'purple', 'orange', 'teal', 'yellow', 'pink'][room.players.length % 8]
+      color: colors[room.players.length % colors.length],
     };
 
     room.players.push(newPlayer);
