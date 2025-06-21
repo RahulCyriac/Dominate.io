@@ -1,0 +1,42 @@
+.sidebar {
+  width: 250px;
+  margin-right: 20px;
+}
+
+.board {
+  display: grid;
+  grid-template-columns: repeat(11, 60px);
+  grid-template-rows: repeat(11, 60px);
+  gap: 1px;
+}
+
+.tile {
+  position: relative; /* IMPORTANT */
+  width: 60px;
+  height: 60px;
+  border: 1px solid #999;
+  padding: 4px;
+  box-sizing: border-box;
+}
+
+
+.player {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-top: 2px;
+}
+
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  width: 250px;
+  margin-right: 20px;
+}
+
+.player-card {
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+
