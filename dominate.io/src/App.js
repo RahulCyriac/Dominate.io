@@ -2,6 +2,7 @@ import './App.css';
 import { useState, useEffect } from 'react';
 import { io } from 'socket.io-client';
 
+<<<<<<< HEAD
 const socket = io('https://your-monopoly-server.onrender.com'); // change to deployed URL in production
 
 const initialBoard = Array.from({ length: 40 }, (_, i) => ({
@@ -19,22 +20,19 @@ const chanceCards = [
   { text: "↩️ Move backward 2 tiles", action: (player) => { player.position = (player.position + 38) % 40; } },
   { text: "🚔 Go to Jail (tile 10)", action: (player) => { player.position = 10; player.isJailed = true; player.jailTurnsLeft = 1; } },
 ];
+=======
+>>>>>>> c5e132e (Updated frontend and backend code for multiplayer rooms)
 
 function App() {
-  const [board, setBoard] = useState(initialBoard);
+  const [board, setBoard] = useState([]);
   const [players, setPlayers] = useState([]);
   const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
-  const [dice, setDice] = useState(1);
   const [logMessage, setLogMessage] = useState('');
   const [playerName, setPlayerName] = useState('');
   const [roomId, setRoomId] = useState('');
   const [joined, setJoined] = useState(false);
 
   useEffect(() => {
-    socket.on('joinedRoom', ({ players }) => {
-      setPlayers(players);
-    });
-
     socket.on('playerJoined', ({ players }) => {
       setPlayers(players);
     });
@@ -66,7 +64,6 @@ function App() {
   return (
     <div className="App">
       <h1>🎲 Monopoly Multiplayer</h1>
-
       {!joined ? (
         <div>
           <input
@@ -87,13 +84,11 @@ function App() {
           <button onClick={startGame}>Start Game</button>
           <h2>Players</h2>
           {players.map((p, idx) => (
-            <div key={idx} style={{ border: idx === currentPlayerIndex ? '2px solid gold' : '1px solid gray', padding: '5px', marginBottom: '5px' }}>
+            <div key={p.id} style={{ border: idx === currentPlayerIndex ? '2px solid gold' : '1px solid gray', padding: '5px', marginBottom: '5px' }}>
               {p.name} - ₹{p.money} {p.isJailed ? '🚔' : ''}
             </div>
           ))}
-
           <button onClick={rollDice}>Roll Dice</button>
-          <p>🎲 Dice: {dice}</p>
           <p>{logMessage}</p>
         </>
       )}
