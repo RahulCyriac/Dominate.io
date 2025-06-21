@@ -2,7 +2,7 @@ import './App.css';
 import { useState, useEffect } from 'react';
 import { io } from 'socket.io-client';
 
-<<<<<<< HEAD
+
 const socket = io('https://your-monopoly-server.onrender.com'); // change to deployed URL in production
 
 const initialBoard = Array.from({ length: 40 }, (_, i) => ({
@@ -20,8 +20,8 @@ const chanceCards = [
   { text: "↩️ Move backward 2 tiles", action: (player) => { player.position = (player.position + 38) % 40; } },
   { text: "🚔 Go to Jail (tile 10)", action: (player) => { player.position = 10; player.isJailed = true; player.jailTurnsLeft = 1; } },
 ];
-=======
->>>>>>> c5e132e (Updated frontend and backend code for multiplayer rooms)
+
+
 
 function App() {
   const [board, setBoard] = useState([]);
