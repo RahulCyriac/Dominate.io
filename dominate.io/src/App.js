@@ -2,6 +2,13 @@ import { useState, useEffect } from 'react';
 import { io } from 'socket.io-client';
 
 const socket = io('https://dominate-io.onrender.com');
+socket.on('connect', () => {
+  console.log('✅ Socket connected with id:', socket.id);
+});
+socket.on('connect_error', (err) => {
+  console.error('❌ Socket connection error:', err.message);
+});
+
 
 function App() {
   const [playerName, setPlayerName] = useState(localStorage.getItem('playerName') || '');
@@ -89,6 +96,8 @@ function App() {
   }, [roomId, playerName]);
 
   const createRoom = () => {
+    if (!playerName) return socket.emit('errorMessage', { message: 'Player name required' });
+
     if (!playerName.trim()) return;
     localStorage.setItem('playerName', playerName);
     socket.emit('createRoom', { playerName });
