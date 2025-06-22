@@ -20,13 +20,12 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 const server = http.createServer(app);
 const io = new Server(server, { 
-  cors: { 
-    origin: process.env.NODE_ENV === 'production'
-      ? ['https://your-frontend-domain.onrender.com', 'https://your-custom-domain.com']
-      : ['http://localhost:3000', 'http://127.0.0.1:3000'],
-    methods: ['GET', 'POST'],
-    credentials: true
-  },
+  cors: {
+  origin: 'https://domionateio.netlify.app',
+  methods: ['GET', 'POST'],
+  credentials: true
+},
+
   transports: ['websocket', 'polling'], // Ensure both transports are available
   pingTimeout: 60000,
   pingInterval: 25000
@@ -634,6 +633,10 @@ socket.on('placeBid', ({ roomId, bid }) => {
       }
     });
   });
+});
+
+ app.get('/', (req, res) => {
+  res.send('Socket server running');
 });
 
 // Graceful shutdown
