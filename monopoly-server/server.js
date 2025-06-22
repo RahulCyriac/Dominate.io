@@ -1,4 +1,4 @@
-// === server.js ===
+// === server.js - PART 1 ===
 const express = require('express');
 const http = require('http');
 const cors = require('cors');
@@ -133,12 +133,37 @@ io.on('connection', socket => {
     });
   });
 
-  // --- START GAME ---
+  // --- START/RESTART GAME ---
   socket.on('startGame', ({ roomId }) => {
     const room = rooms[roomId];
-    if (!room || room.started || room.host !== socket.id) return;
+    if (!room || room.host !== socket.id) return;
+    
+    // Reset game state (allows restarting)
     room.started = true;
-    logEvent(room, 'Game started');
+    room.currentPlayerIndex = 0;
+    room.auction = null;
+    
+    // Reset all players
+    room.players.forEach(player => {
+      player.position = 0;
+      player.money = 1500;
+      player.isJailed = false;
+      player.jailTurnsLeft = 0;
+      player.isBankrupt = false;
+      player.properties = [];
+    });
+    
+    // Reset board
+    room.board.forEach(tile => {
+      if (tile.type === 'property') {
+        tile.owner = null;
+        tile.houses = 0;
+        tile.hotel = false;
+        tile.isMortgaged = false;
+      }
+    });
+    
+    logEvent(room, 'Game started/restarted');
     io.to(roomId).emit('gameState', {
       board: room.board,
       players: room.players,
@@ -216,6 +241,7 @@ io.on('connection', socket => {
     logEvent(room, `${player.name} bid ₹${bid}`);
     io.to(roomId).emit('updateAuction', room.auction);
   });
+  
   socket.on('endAuction', ({ roomId }) => {
     const room = rooms[roomId]; if (!room || !room.auction) return;
     const { propertyId, highestBid, highestBidder } = room.auction;
@@ -226,6 +252,8 @@ io.on('connection', socket => {
       winner.properties.push(propertyId);
       tile.owner = room.players.indexOf(winner);
       logEvent(room, `${winner.name} won auction for ${tile.name} at ₹${highestBid}`);
+    } else {
+      logEvent(room, `No bids for ${tile.name}`);
     }
     room.auction = null;
     io.to(roomId).emit('endAuction');
@@ -244,7 +272,7 @@ io.on('connection', socket => {
     const idx = room.players.findIndex(p => p.id === socket.id);
     const player = room.players[idx];
     const tile = room.board[propertyId];
-    if (tile.owner !== idx) return;
+    if (tile.owner !== idx || tile.type !== 'property') return;
     const group = Object.keys(COLOR_GROUPS).find(g => COLOR_GROUPS[g].includes(propertyId));
     if (!group || !ownsFullSet(idx, room.board, group)) return;
     const cost = 50;
@@ -283,6 +311,7 @@ io.on('connection', socket => {
       });
     }
   });
+  
   socket.on('unmortgageProperty', ({ roomId, propertyId }) => {
     const room = rooms[roomId];
     const player = room?.players.find(p => p.id === socket.id);
@@ -305,6 +334,7 @@ io.on('connection', socket => {
   socket.on('tradeOffer', ({ roomId, from, to, offerAmount, requestAmount, offerProps, requestProps }) => {
     io.to(to).emit('incomingTrade', { from, offerAmount, requestAmount, offerProps, requestProps });
   });
+  
   socket.on('respondToTrade', ({ roomId, accepted, from, offerAmount, requestAmount, offerProps, requestProps }) => {
     const room = rooms[roomId];
     const sender = room?.players.find(p => p.id === from);
@@ -360,11 +390,17 @@ io.on('connection', socket => {
       });
     }
   });
+  
   socket.on('declareBankruptcy', ({ roomId }) => {
     const room = rooms[roomId]; const player = room?.players.find(p => p.id === socket.id);
     if (player) {
       player.isBankrupt = true; player.money = 0;
-      player.properties.forEach(pid => { room.board[pid].owner = null; room.board[pid].isMortgaged = false; });
+      player.properties.forEach(pid => { 
+        room.board[pid].owner = null; 
+        room.board[pid].isMortgaged = false;
+        room.board[pid].houses = 0;
+        room.board[pid].hotel = false;
+      });
       player.properties = [];
       logEvent(room, `${player.name} went bankrupt`);
       const remaining = room.players.filter(p => !p.isBankrupt);
@@ -384,9 +420,23 @@ io.on('connection', socket => {
   socket.on('disconnect', () => {
     for (const rid in rooms) {
       const room = rooms[rid];
+      const wasHost = room.host === socket.id;
+      
       room.players = room.players.filter(p => p.id !== socket.id);
-      if (room.players.length === 0) delete rooms[rid];
-      else io.to(rid).emit('playerJoined', { players: room.players });
+      
+      if (room.players.length === 0) {
+        delete rooms[rid];
+      } else {
+        // Transfer host if needed
+        if (wasHost && room.players.length > 0) {
+          room.host = room.players[0].id;
+          logEvent(room, `${room.players[0].name} is now the host`);
+        }
+        io.to(rid).emit('playerJoined', { 
+          players: room.players,
+          newHost: wasHost ? room.players[0].id : null
+        });
+      }
     }
     console.log(`🔴 ${socket.id} disconnected`);
   });
