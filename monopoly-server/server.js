@@ -272,7 +272,7 @@ socket.on('startGame', ({ roomId }) => {
       return socket.emit('errorMessage', { message: 'Only the host can start the game.' });
     }
     
-    if (room.players.length < 2) {
+    if (room.players.length < 1) {
       return socket.emit('errorMessage', { message: 'Need at least 2 players to start.' });
     }
     

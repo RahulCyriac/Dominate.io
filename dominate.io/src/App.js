@@ -64,7 +64,12 @@ export default function App() {
     setPlayers([]);
     localStorage.removeItem('roomId');
   };
-
+  
+  const startGame = () => {
+    if (roomId) {
+      socket.emit('startGame', { roomId });
+    }
+  };
   
   const rollDice = () => socket.emit('rollDice', { roomId });
 
