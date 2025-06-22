@@ -33,7 +33,7 @@ function logEvent(room, message) {
 
 const rooms = {};
 
-oi.on('connection', socket => {
+io.on('connection', socket => {
   console.log(`🟢 ${socket.id} connected`);
 
   // --- RECONNECT HANDLER ---
