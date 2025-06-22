@@ -65,7 +65,7 @@ export default function App() {
     localStorage.removeItem('roomId');
   };
 
-  const startGame = () => socket.emit('startGame', { roomId });
+  
   const rollDice = () => socket.emit('rollDice', { roomId });
 
   return (
