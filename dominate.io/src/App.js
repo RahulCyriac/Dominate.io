@@ -121,7 +121,7 @@ function App() {
   const build = (pid) => socket.emit('build', { roomId, propertyId: pid });
   const payJail = () => socket.emit('payToLeaveJail', { roomId });
   const bankrupt = () => {
-    if (confirm('Are you sure you want to declare bankruptcy?')) {
+    if (window.confirm('Are you sure you want to declare bankruptcy?')) {
       socket.emit('declareBankruptcy', { roomId });
     }
   };
