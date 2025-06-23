@@ -182,23 +182,42 @@ io.on('connection', socket => {
 
   // Enhanced create room with better board initialization
   socket.on('createRoom', ({ playerName }) => {
-    try {
-      const roomId = Math.random().toString(36).substr(2, 6).toUpperCase();
-      console.log(`Creating room ${roomId} for ${playerName}`);
-      
-      socket.join(roomId);
-      
-      rooms[roomId] = {
-        host: socket.id,
-        board: [],
-        players: [],
-        currentPlayerIndex: 0,
-        started: false,
-        chat: [],
-        auction: null,
-        logHistory: [],
-        lastActivity: Date.now()
-      };
+  const roomId = Math.random().toString(36).substr(2, 6).toUpperCase();
+  console.log(`Creating room ${roomId} for ${playerName}`);
+
+  socket.join(roomId);
+
+  rooms[roomId] = {
+    host: socket.id,
+    board: [],
+    players: [],
+    currentPlayerIndex: 0,
+    started: false,
+    chat: [],
+    auction: null,
+    logHistory: [],
+    lastActivity: Date.now()
+  };
+
+  rooms[roomId].players.push({
+    id: socket.id,
+    name: playerName,
+    position: 0,
+    money: 1500,
+    properties: [],
+    inJail: false,
+    jailTurns: 0,
+    bankrupt: false
+  });
+
+  socket.emit('roomCreated', {
+    roomId,
+    players: rooms[roomId].players
+  });
+
+  console.log(`Room ${roomId} created and player ${playerName} joined`);
+});
+
       
       // Initialize board with proper property data
       rooms[roomId].board = Array.from({ length: 40 }, (_, i) => {
@@ -255,11 +274,7 @@ io.on('connection', socket => {
         roomId,
         isHost: true
       });
-    } catch (error) {
-      console.error('Create room error:', error);
-      socket.emit('errorMessage', { message: 'Failed to create room.' });
-    }
-  });
+    },)
 
   // === game-handlers.js - Complete Game Logic (Add this to server.js after line 200) ===
 
@@ -634,7 +649,7 @@ socket.on('placeBid', ({ roomId, bid }) => {
       }
     });
   });
-});
+
 
  app.get('/', (req, res) => {
   res.send('Socket server running');
